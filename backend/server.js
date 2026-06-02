@@ -2,6 +2,8 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const connectDB = require('./config/db');
+const { deleteEvent } = require('./controllers/eventController');
+const { protect, authorize } = require('./middleware/authMiddleware');
 
 // Import Schemas for Seeding
 const User = require('./models/User');
@@ -25,6 +27,7 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 // Bind REST routes
 app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/events', require('./routes/eventRoutes'));
+app.delete('/api/events/:id', protect, authorize('coordinator'), deleteEvent);
 app.use('/api/calendar', require('./routes/calendarRoutes'));
 
 // Welcome/Ping endpoint
@@ -42,7 +45,7 @@ app.use((err, req, res, next) => {
 });
 
 // Setup Port
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`✅ Server running on http://localhost:${PORT}`);
 });

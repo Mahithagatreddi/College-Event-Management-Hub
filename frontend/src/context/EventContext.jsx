@@ -360,17 +360,24 @@ export const EventProvider = ({ children }) => {
         method: 'DELETE',
         headers: getAuthHeaders()
       });
-      const data = await res.json();
-      if (data.success) {
+      const text = await res.text();
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch {
+        data = null;
+      }
+
+      if (res.ok && data?.success) {
         toast.success(data.message || 'Event deleted successfully.');
         fetchEvents();
         fetchCalendarEntries();
         fetchNotices();
         return true;
-      } else {
-        toast.error(data.message || 'Failed to delete event.');
-        return false;
       }
+
+      toast.error(data?.message || `Failed to delete event. (${res.status})`);
+      return false;
     } catch (err) {
       toast.error('Network Error: Could not delete event.');
       return false;

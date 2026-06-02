@@ -297,7 +297,7 @@ export default function EventDetails() {
           )}
 
           {/* Photo Gallery presets highlight */}
-          {event.status === 'Completed' && event.photos && event.photos.length > 0 && (
+          {event.photos && event.photos.length > 0 && (
             <div className="glass-panel p-6 rounded-2xl">
               <h3 className="text-md font-bold font-title text-neon-purple mb-4 flex items-center gap-2">
                 <FaImages /> Highlights Gallery
@@ -314,7 +314,27 @@ export default function EventDetails() {
             </div>
           )}
 
+          {/* Event Feedback Summary */}
+          {event.feedbacks && event.feedbacks.length > 0 && (
+            <div className="glass-panel p-6 rounded-2xl border-neon-cyan/20 bg-[#0b1220]">
+              <h3 className="text-md font-bold font-title text-neon-cyan mb-4 flex items-center gap-2">
+                <FaStar /> Participant Feedback Summary
+              </h3>
+              <div className="flex flex-col gap-2 text-xs text-gray-300">
+                <p><strong>{event.feedbackCount || event.feedbacks.length}</strong> review{(event.feedbackCount || event.feedbacks.length) === 1 ? '' : 's'} submitted by registered participants.</p>
+                <p>Organizer satisfaction score: <span className="text-neon-amber font-bold">{event.feedbackPercentage || Math.round((event.feedbacks.reduce((sum, f) => sum + f.rating, 0) / (event.feedbacks.length * 5)) * 100)}%</span></p>
+                <p className="text-gray-500">These ratings are used to award the organizer a badge based on event performance.</p>
+              </div>
+            </div>
+          )}
+
           {/* Participant Reviews ratings */}
+          {event.status === 'Completed' && !isRegistered && user?.role === 'student' && (
+            <div className="glass-panel p-6 rounded-2xl border border-white/10 bg-white/5 text-gray-300 text-xs">
+              <p className="font-semibold text-gray-100">Only students who registered for this event can submit feedback.</p>
+              <p className="mt-2 text-gray-400">Please make sure you register first, then return after the event concludes to leave your rating.</p>
+            </div>
+          )}
           {event.status === 'Completed' && isRegistered && (
             <div className="glass-panel p-6 rounded-2xl">
               <h3 className="text-md font-bold font-title text-neon-amber mb-1 flex items-center gap-2">

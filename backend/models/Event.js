@@ -105,7 +105,15 @@ const EventSchema = new mongoose.Schema({
   }],
   photos: [String], // Array of gallery photos URLs
   winners: [WinnerSchema], // List of top 3 winners
-  feedbacks: [FeedbackSchema] // Star rating reviews
+  feedbacks: [FeedbackSchema], // Star rating reviews
+  feedbackCount: {
+    type: Number,
+    default: 0
+  },
+  feedbackPercentage: {
+    type: Number,
+    default: 0
+  }
 }, {
   timestamps: true
 });

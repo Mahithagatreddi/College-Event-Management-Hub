@@ -488,14 +488,15 @@ exports.submitEventFeedback = async (req, res) => {
       comment
     });
 
-    await event.save();
-
-    // ⚠️ 4. FEEDBACK FORMULA: Re-compute Satisfaction Percentage
-    // Percentage = (Sum of stars) / (Total reviews * 5) * 100
+    // Recompute feedback summary values before save
     const totalStars = event.feedbacks.reduce((sum, f) => sum + f.rating, 0);
     const calculatedPercentage = Math.round((totalStars / (event.feedbacks.length * 5)) * 100);
+    event.feedbackCount = event.feedbacks.length;
+    event.feedbackPercentage = calculatedPercentage;
 
-    // 5. Update Organizer Profile Badge
+    await event.save();
+
+    // 4. Update Organizer Profile Badge
     const organizer = await User.findById(event.organizer);
     if (organizer) {
       const badgeIdx = organizer.badges.findIndex(b => b.eventId.toString() === event._id.toString());
