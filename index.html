@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Apex College Events | BTech Event Hub</title>
+  <!-- Google Fonts & Iconographies -->
+  <link rel="stylesheet" href="app.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Canvas Confetti Library for Winner Celebrations -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+</head>
+<body>
+
+  <!-- Toast Notification System -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <!-- Dynamic Event Page Overlay (Slides up on Click) -->
+  <div id="event-page-overlay" class="event-page-overlay" style="display: none;">
+    <button class="event-back-btn" onclick="app.closeEventDetails()">
+      <i class="fa-solid fa-arrow-left"></i> Back to Hub
+    </button>
+    <div id="event-page-hero" class="event-page-hero">
+      <div class="event-page-hero-content">
+        <div class="event-page-hero-title-wrap">
+          <span id="event-page-badge" class="event-status-badge"></span>
+          <h1 id="event-page-title">Event Title</h1>
+          <p id="event-page-time-meta" class="roll-note" style="color: var(--text-muted); font-size: 1rem;">
+            <i class="fa-solid fa-calendar"></i> June 15, 2026 @ 10:00 AM
+          </p>
+        </div>
+      </div>
+    </div>
+    
+    <div class="event-page-body-grid">
+      <!-- Left Column: Details, Photos, Winners, Feedback -->
+      <div>
+        <div class="glass-panel" style="padding: 2rem; margin-bottom: 2rem;">
+          <h3 style="font-size: 1.4rem; margin-bottom: 1rem; color: var(--color-secondary);">
+            <i class="fa-solid fa-circle-info"></i> About the Event
+          </h3>
+          <p id="event-page-desc" style="line-height: 1.7; color: var(--text-muted);">
+            Detailed description of the event will be loaded dynamically here.
+          </p>
+        </div>
+
+        <!-- Winners Section (Only shows if completed) -->
+        <div id="event-page-winners-section" class="winners-display-card" style="display: none;">
+          <h3 style="color: var(--color-warning); font-size: 1.3rem; display: flex; align-items: center; gap: 0.5rem;">
+            <i class="fa-solid fa-trophy"></i> Event Champions
+          </h3>
+          <div id="event-page-winners-list" class="winners-display-list">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+
+        <!-- Event Photo Gallery (Shows if completed) -->
+        <div id="event-page-gallery-section" class="photo-gallery-section" style="display: none;">
+          <h3 style="font-size: 1.3rem; color: var(--color-primary);">
+            <i class="fa-solid fa-images"></i> Event Highlights
+          </h3>
+          <div id="event-page-gallery-grid" class="gallery-grid">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+
+        <!-- Feedback Section (Shows for completed events if student registered) -->
+        <div id="event-page-feedback-section" class="glass-panel" style="padding: 2rem; display: none;">
+          <h3 style="font-size: 1.3rem; margin-bottom: 0.5rem; color: var(--color-warning);">
+            <i class="fa-solid fa-comments"></i> Share Your Experience
+          </h3>
+          <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">
+            Your feedback helps calculate the event organizer's badge and score.
+          </p>
+          <div id="feedback-form-container">
+            <div class="star-rating-select" id="star-rating-select">
+              <i class="fa-solid fa-star" data-rating="1" onclick="app.setFeedbackRating(1)"></i>
+              <i class="fa-solid fa-star" data-rating="2" onclick="app.setFeedbackRating(2)"></i>
+              <i class="fa-solid fa-star" data-rating="3" onclick="app.setFeedbackRating(3)"></i>
+              <i class="fa-solid fa-star" data-rating="4" onclick="app.setFeedbackRating(4)"></i>
+              <i class="fa-solid fa-star" data-rating="5" onclick="app.setFeedbackRating(5)"></i>
+            </div>
+            <textarea id="feedback-comment-input" class="form-textarea" rows="3" placeholder="Tell us what you liked or how we can improve..."></textarea>
+            <button class="btn btn-primary btn-sm" onclick="app.submitFeedback()" style="margin-top: 1rem;">
+              Submit Review
+            </button>
+          </div>
+          <div id="feedback-submitted-state" style="display: none; color: var(--color-success); font-weight: 500;">
+            <i class="fa-solid fa-circle-check"></i> Thank you! Your feedback has been registered.
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Column: Registration, Links, Reminders & Organizer Admin Console -->
+      <div>
+        <!-- General Access Actions Panel -->
+        <div class="glass-panel" style="padding: 1.5rem; margin-bottom: 2rem; border-color: rgba(0, 243, 255, 0.15);">
+          <h4 style="font-size: 1.1rem; margin-bottom: 1.25rem;">Event Quick Actions</h4>
+          <div style="display: flex; flex-direction: column; gap: 1rem;">
+            
+            <div id="event-action-register-box">
+              <button id="event-register-btn" class="btn btn-primary" style="width: 100%;" onclick="app.toggleEventRegistration()">
+                <i class="fa-solid fa-user-plus"></i> Register for Event
+              </button>
+              <p id="event-registered-count" style="font-size: 0.75rem; text-align: center; margin-top: 0.5rem; color: var(--text-muted);">
+                0 Students Registered
+              </p>
+            </div>
+
+            <!-- Get Notified Button -->
+            <button id="event-notify-btn" class="btn btn-outline" style="width: 100%;" onclick="app.toggleNotificationReminder()">
+              <i class="fa-solid fa-bell"></i> Notify Me (30m Before)
+            </button>
+
+            <!-- NDLI Resource Link -->
+            <a id="event-ndli-link" href="#" target="_blank" class="btn btn-secondary" style="width: 100%; text-align: center; display: none;">
+              <i class="fa-solid fa-book-open"></i> NDLI Library Resources
+            </a>
+
+            <!-- Google Form Registration Link -->
+            <a id="event-gform-link" href="#" target="_blank" class="btn btn-outline" style="width: 100%; text-align: center; display: none; color: var(--color-success); border-color: rgba(46, 204, 113, 0.3);">
+              <i class="fa-brands fa-google"></i> Complete Google Form
+            </a>
+          </div>
+        </div>
+
+        <!-- Organizer Control Console (Only loaded if student is assigned organizer) -->
+        <div id="organizer-control-console" class="glass-panel glow-purple-hover" style="padding: 1.5rem; border-color: var(--color-primary); display: none;">
+          <h4 style="font-size: 1.1rem; color: var(--color-primary); margin-bottom: 0.5rem;">
+            <i class="fa-solid fa-shield-halved"></i> Organizer Console
+          </h4>
+          <p style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 1.25rem;">
+            Manage details, upload content, and post winners for this event.
+          </p>
+
+          <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+            <!-- Event Stage Control -->
+            <div>
+              <label class="form-label">Event Stage</label>
+              <select id="org-event-status" class="form-select" onchange="app.updateEventStatus(this.value)">
+                <option value="Upcoming">Upcoming (Active Registrations)</option>
+                <option value="Live">Live (Event is Ongoing)</option>
+                <option value="Completed">Completed (Concluded)</option>
+              </select>
+            </div>
+
+            <!-- Preset Poster Selection -->
+            <div>
+              <label class="form-label">Select Poster Preset</label>
+              <div class="preset-posters-grid">
+                <div class="preset-poster-option selected" id="poster-preset-tech" onclick="app.selectPresetPoster('tech')" style="background-image: url('https://images.unsplash.com/photo-1518770660439-4636190af475?w=200');">
+                  <div class="preset-poster-label">Technical</div>
+                </div>
+                <div class="preset-poster-option" id="poster-preset-cult" onclick="app.selectPresetPoster('cultural')" style="background-image: url('https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=200');">
+                  <div class="preset-poster-label">Cultural</div>
+                </div>
+                <div class="preset-poster-option" id="poster-preset-sport" onclick="app.selectPresetPoster('sports')" style="background-image: url('https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=200');">
+                  <div class="preset-poster-label">Sports</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Event Links -->
+            <div>
+              <label class="form-label">Google Form Link</label>
+              <input type="url" id="org-gform-input" class="form-input" style="padding-left: 1rem;" placeholder="https://forms.google.com/..." onchange="app.saveOrganizerLinks()">
+            </div>
+            <div>
+              <label class="form-label">NDLI Link (National Digital Library)</label>
+              <input type="url" id="org-ndli-input" class="form-input" style="padding-left: 1rem;" placeholder="https://ndl.iitkgp.ac.in/..." onchange="app.saveOrganizerLinks()">
+            </div>
+
+            <!-- Complete Event Content: Winners & Gallery -->
+            <div id="org-completion-inputs" style="display: none; border-top: 1px solid var(--glass-border); padding-top: 1rem;">
+              <h5 style="color: var(--color-warning); font-size: 0.9rem; margin-bottom: 0.75rem;">
+                <i class="fa-solid fa-award"></i> Upload Winners (Roll Numbers)
+              </h5>
+              
+              <div style="display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 1rem;">
+                <div style="display: flex; gap: 0.5rem; align-items: center;">
+                  <span style="font-size: 0.8rem; color: #ffd700; width: 24px; font-weight: 700;">1st:</span>
+                  <input type="text" id="org-win-1-name" class="form-input" style="padding-left: 0.75rem;" placeholder="Name">
+                  <input type="text" id="org-win-1-roll" class="form-input" style="padding-left: 0.75rem;" placeholder="Roll Number">
+                </div>
+                <div style="display: flex; gap: 0.5rem; align-items: center;">
+                  <span style="font-size: 0.8rem; color: #c0c0c0; width: 24px; font-weight: 700;">2nd:</span>
+                  <input type="text" id="org-win-2-name" class="form-input" style="padding-left: 0.75rem;" placeholder="Name">
+                  <input type="text" id="org-win-2-roll" class="form-input" style="padding-left: 0.75rem;" placeholder="Roll Number">
+                </div>
+                <div style="display: flex; gap: 0.5rem; align-items: center;">
+                  <span style="font-size: 0.8rem; color: #cd7f32; width: 24px; font-weight: 700;">3rd:</span>
+                  <input type="text" id="org-win-3-name" class="form-input" style="padding-left: 0.75rem;" placeholder="Name">
+                  <input type="text" id="org-win-3-roll" class="form-input" style="padding-left: 0.75rem;" placeholder="Roll Number">
+                </div>
+              </div>
+
+              <h5 style="color: var(--color-secondary); font-size: 0.9rem; margin-bottom: 0.75rem;">
+                <i class="fa-solid fa-images"></i> Event Highlights (Select Presets)
+              </h5>
+              <p style="font-size: 0.65rem; color: var(--text-muted); margin-bottom: 0.5rem;">
+                Choose photos from standard event highlights to post.
+              </p>
+              <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
+                <label style="flex: 1; text-align: center; border: 1px solid var(--glass-border); padding: 0.35rem; border-radius: 4px; font-size: 0.75rem; cursor: pointer; display: block;">
+                  <input type="checkbox" id="gallery-preset-1" onchange="app.saveOrganizerLinks()"> Tech Deck
+                </label>
+                <label style="flex: 1; text-align: center; border: 1px solid var(--glass-border); padding: 0.35rem; border-radius: 4px; font-size: 0.75rem; cursor: pointer; display: block;">
+                  <input type="checkbox" id="gallery-preset-2" onchange="app.saveOrganizerLinks()"> Presentation
+                </label>
+                <label style="flex: 1; text-align: center; border: 1px solid var(--glass-border); padding: 0.35rem; border-radius: 4px; font-size: 0.75rem; cursor: pointer; display: block;">
+                  <input type="checkbox" id="gallery-preset-3" onchange="app.saveOrganizerLinks()"> Winner Stage
+                </label>
+              </div>
+
+              <button class="btn btn-secondary btn-sm" style="width: 100%;" onclick="app.submitOrganizerCompletion()">
+                Publish Event Summary & Ranks
+              </button>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Calendar Scheduling Modal (Coordinator Action) -->
+  <div id="scheduling-modal" class="modal-overlay" style="display: none;">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h3><i class="fa-solid fa-calendar-check"></i> Approve & Schedule Event</h3>
+        <button class="modal-close-btn" onclick="app.closeSchedulingModal()"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="modal-body">
+        <div class="alert alert-warning" id="sched-alert-box" style="display: none;"></div>
+        <input type="hidden" id="sched-proposal-id">
+        <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+          <div>
+            <label class="form-label">Event Name</label>
+            <input type="text" id="sched-event-name" class="form-input" style="padding-left: 1rem;" readonly>
+          </div>
+          <div>
+            <label class="form-label">Requesting Student Organizer</label>
+            <input type="text" id="sched-event-organizer" class="form-input" style="padding-left: 1rem;" readonly>
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+            <div>
+              <label class="form-label">Select Date</label>
+              <input type="date" id="sched-event-date" class="form-input" style="padding-left: 1rem;" min="2026-06-01">
+            </div>
+            <div>
+              <label class="form-label">Select Time</label>
+              <input type="time" id="sched-event-time" class="form-input" style="padding-left: 1rem;">
+            </div>
+          </div>
+          <div class="roll-note">
+            <i class="fa-solid fa-info-circle"></i> Scheduling this event will automatically allot a calendar day, issue announcements, and grant the student access to their Event Page.
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline btn-sm" onclick="app.closeSchedulingModal()">Cancel</button>
+        <button class="btn btn-secondary btn-sm" onclick="app.confirmApprovalAndScheduling()">Approve & Schedule</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Calendar Cell Interaction Modal (Holiday/Exam Maker for Coordinators) -->
+  <div id="calendar-date-modal" class="modal-overlay" style="display: none;">
+    <div class="modal-container" style="max-width: 480px;">
+      <div class="modal-header">
+        <h3 id="cal-modal-title">Calendar Controls</h3>
+        <button class="modal-close-btn" onclick="app.closeCalendarModal()"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.25rem;">
+          Define custom department parameters for the selected date. This is visible to everyone in the calendar agenda.
+        </p>
+        <input type="hidden" id="cal-selected-date">
+        <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+          <div>
+            <label class="form-label">Agenda Item Title</label>
+            <input type="text" id="cal-agenda-title" class="form-input" style="padding-left: 1rem;" placeholder="e.g. Mid-Term exams, Public Holiday">
+          </div>
+          <div>
+            <label class="form-label">Type of Agenda Date</label>
+            <select id="cal-agenda-type" class="form-select">
+              <option value="exam">Department Examination</option>
+              <option value="holiday">Official Department Holiday</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button id="cal-modal-delete-btn" class="btn btn-danger btn-sm" onclick="app.deleteCalendarAgenda()" style="display: none; margin-right: auto;">
+          Delete Item
+        </button>
+        <button class="btn btn-outline btn-sm" onclick="app.closeCalendarModal()">Cancel</button>
+        <button class="btn btn-primary btn-sm" onclick="app.saveCalendarAgenda()">Save Agenda</button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- AUTHENTICATION CONTAINER (Main view on boot) -->
+  <div id="auth-panel" class="auth-wrapper">
+    <div class="auth-container glass-panel glow-purple-hover">
+      
+      <div class="auth-logo">
+        <i class="fa-solid fa-graduation-cap"></i>
+        <h2>BTech Event Hub</h2>
+        <p>College Event & Department Management System</p>
+      </div>
+
+      <!-- Auth Navigation Toggle Tabs -->
+      <div class="auth-tabs">
+        <button id="tab-student" class="auth-tab active" onclick="app.toggleAuthTab('student')">Student Portal</button>
+        <button id="tab-admin" class="auth-tab" onclick="app.toggleAuthTab('admin')">Staff Login</button>
+      </div>
+
+      <!-- Form Error Alerts -->
+      <div class="alert alert-danger" id="auth-error-alert" style="display: none;">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+        <span id="auth-error-text">Authentication Error.</span>
+      </div>
+
+      <!-- STUDENT PORTAL LOGIN & REGISTRATION -->
+      <div id="student-auth-form">
+        <!-- Dynamic Option: Toggle Login vs Register inside Student Portal -->
+        <div style="display: flex; flex-direction: column; gap: 1rem;">
+          
+          <div class="form-group">
+            <label class="form-label">BTech Roll Number</label>
+            <div class="input-wrapper">
+              <input type="text" id="student-roll" class="form-input" placeholder="e.g. 24481A1270" uppercase>
+              <i class="fa-solid fa-id-card"></i>
+            </div>
+            <div class="roll-note">
+              <i class="fa-solid fa-circle-question"></i>
+              First 2 digits represent your admission year.
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Password</label>
+            <div class="input-wrapper">
+              <input type="password" id="student-pass" class="form-input" placeholder="••••••••">
+              <i class="fa-solid fa-lock"></i>
+            </div>
+          </div>
+
+          <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+            <button class="btn btn-outline" style="flex: 1;" onclick="app.authenticateStudent(true)">
+              <i class="fa-solid fa-user-plus"></i> Register
+            </button>
+            <button class="btn btn-primary" style="flex: 1;" onclick="app.authenticateStudent(false)">
+              <i class="fa-solid fa-right-to-bracket"></i> Login
+            </button>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ADMIN & COORDINATOR LOGIN -->
+      <div id="admin-auth-form" style="display: none;">
+        <div style="display: flex; flex-direction: column; gap: 1rem;">
+          <div class="form-group">
+            <label class="form-label">Academic Access Username</label>
+            <div class="input-wrapper">
+              <input type="text" id="admin-user" class="form-input" placeholder="e.g. coordinator or admin">
+              <i class="fa-solid fa-user-tie"></i>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Department Password</label>
+            <div class="input-wrapper">
+              <input type="password" id="admin-pass" class="form-input" placeholder="••••••••">
+              <i class="fa-solid fa-lock"></i>
+            </div>
+          </div>
+
+          <button class="btn btn-secondary" style="width: 100%; margin-top: 1rem;" onclick="app.authenticateStaff()">
+            <i class="fa-solid fa-shield-halved"></i> Verify Credentials
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+
+  <!-- MAIN SYSTEM APPLICATION CORE (Hidden until Auth) -->
+  <div id="app-panel" style="display: none;">
+    
+    <!-- Top Header -->
+    <header>
+      <div class="logo">
+        <i class="fa-solid fa-graduation-cap"></i> Apex Events
+      </div>
+
+      <div class="header-actions">
+        <div class="current-date-badge">
+          <i class="fa-solid fa-clock"></i> <span id="system-clock-date">June 2, 2026</span>
+        </div>
+
+        <div class="user-profile-widget" id="user-profile-widget">
+          <div class="user-avatar" id="header-avatar">ST</div>
+          <div class="user-info">
+            <span class="user-name" id="header-username">Student Name</span>
+            <span class="user-role" id="header-role">2nd Year BTech</span>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Notices Scrolling Marquee (Shows global announcements) -->
+    <div class="notices-ticker-bar">
+      <div class="ticker-title">Department Bulletins</div>
+      <div class="ticker-container">
+        <div class="ticker-content" id="bulletins-marquee-content">
+          <!-- Populated dynamically -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Layout Grid -->
+    <div class="dashboard-grid">
+      
+      <!-- Sidebar Navigation Menu -->
+      <aside class="sidebar">
+        <div class="menu-group">
+          <div class="menu-title">Main Workspace</div>
+          
+          <button class="menu-item active" id="nav-home" onclick="app.switchView('home')">
+            <i class="fa-solid fa-house"></i> Home Portal
+          </button>
+
+          <button class="menu-item" id="nav-calendar" onclick="app.switchView('calendar')">
+            <i class="fa-solid fa-calendar-days"></i> Academic Calendar
+          </button>
+
+          <!-- Student-Only: Proposals submission tab -->
+          <button class="menu-item" id="nav-proposals" onclick="app.switchView('proposals')" style="display: none;">
+            <i class="fa-solid fa-hand-sparkles"></i> Propose Event
+          </button>
+
+          <!-- Staff-Only: Requests Inbox tab -->
+          <button class="menu-item" id="nav-inbox" onclick="app.switchView('inbox')" style="display: none;">
+            <i class="fa-solid fa-inbox"></i> Proposals Inbox <span id="inbox-count-badge" class="badge-pill" style="background: var(--color-danger); display: none;">0</span>
+          </button>
+
+          <!-- Super Admin-Only Panel -->
+          <button class="menu-item" id="nav-superadmin" onclick="app.switchView('superadmin')" style="display: none;">
+            <i class="fa-solid fa-users-gear"></i> Staff Coordinators
+          </button>
+        </div>
+
+        <!-- Logout and Profile Details -->
+        <div>
+          <!-- Student organizer specific statistics / badge storage -->
+          <div id="profile-organizer-pill-box" class="profile-summary-card" style="display: none;">
+            <h5 style="font-size: 0.8rem; margin-bottom: 0.35rem; color: var(--color-secondary);">My Organizer Awards</h5>
+            <div id="organizer-badges-list" class="badge-pill-container">
+              <!-- Dynamically populated badges e.g. "🏆 Organizer: Tech Hack (94%)" -->
+            </div>
+          </div>
+
+          <button class="menu-item" onclick="app.logoutUser()" style="margin-top: 1rem; border-color: rgba(255, 75, 75, 0.1);">
+            <i class="fa-solid fa-right-from-bracket" style="color: var(--color-danger);"></i> Sign Out
+          </button>
+        </div>
+      </aside>
+
+      <!-- Main Dashboard Panel -->
+      <main class="main-content">
+        
+        <!-- SECTION: HOME / EVENT PORTAL -->
+        <section id="view-home">
+          <!-- Winners Celebrations Section -->
+          <div class="winners-wall">
+            <div class="winners-header">
+              <div class="winners-title">
+                <i class="fa-solid fa-crown"></i> Scrolling Winners Wall
+              </div>
+              <span style="font-size: 0.75rem; color: var(--text-dim);">
+                Hover or click to celebrate!
+              </span>
+            </div>
+            <div class="winners-marquee-container" id="winners-scroller">
+              <!-- Populated dynamically -->
+            </div>
+          </div>
+
+          <div class="section-header">
+            <div class="section-title-wrap">
+              <h2>Events Bulletin Hub</h2>
+              <p>Discover, register, and review department activities.</p>
+            </div>
+            
+            <div class="filter-tabs" id="event-filter-tabs">
+              <button class="filter-tab active" onclick="app.filterEvents('all')">All Events</button>
+              <button class="filter-tab" onclick="app.filterEvents('Technical')">Technical</button>
+              <button class="filter-tab" onclick="app.filterEvents('Cultural')">Cultural</button>
+              <button class="filter-tab" onclick="app.filterEvents('Sports')">Sports</button>
+              <button class="filter-tab" id="filter-reg-tab" onclick="app.filterEvents('registered')">Registered</button>
+            </div>
+          </div>
+
+          <!-- Events Listing Grid -->
+          <div class="events-grid" id="events-grid-view">
+            <!-- Dynamically populated event cards -->
+          </div>
+        </section>
+
+        <!-- SECTION: ACADEMIC CALENDAR -->
+        <section id="view-calendar" style="display: none;">
+          <div class="section-header">
+            <div class="section-title-wrap">
+              <h2>Interactive Calendar</h2>
+              <p>Track academic programs, tests, holidays, and schedule event timings.</p>
+            </div>
+            <div id="calendar-coordinator-hint" class="roll-note" style="display: none;">
+              <i class="fa-solid fa-circle-exclamation" style="color: var(--color-secondary);"></i>
+              Academic Coordinator Access: Click on any date box to manage department agendas!
+            </div>
+          </div>
+
+          <div class="calendar-widget-panel">
+            <!-- Calendar Card -->
+            <div class="glass-panel calendar-view-card">
+              <div class="calendar-header">
+                <div class="calendar-month-name" id="calendar-month-title">June 2026</div>
+                <div style="display: flex; gap: 0.5rem;">
+                  <button class="calendar-nav-btn" onclick="app.changeCalendarMonth(-1)"><i class="fa-solid fa-chevron-left"></i></button>
+                  <button class="calendar-nav-btn" onclick="app.changeCalendarMonth(1)"><i class="fa-solid fa-chevron-right"></i></button>
+                </div>
+              </div>
+
+              <div class="calendar-grid">
+                <!-- Day Titles -->
+                <div class="calendar-day-label">Sun</div>
+                <div class="calendar-day-label">Mon</div>
+                <div class="calendar-day-label">Tue</div>
+                <div class="calendar-day-label">Wed</div>
+                <div class="calendar-day-label">Thu</div>
+                <div class="calendar-day-label">Fri</div>
+                <div class="calendar-day-label">Sat</div>
+              </div>
+              <div class="calendar-grid" id="calendar-dates-grid">
+                <!-- Populated dynamically -->
+              </div>
+            </div>
+
+            <!-- Date Inspector Panel / Daily Agenda -->
+            <div class="glass-panel agenda-panel">
+              <div class="agenda-header">
+                <h3 id="agenda-selected-date-title">June 2, 2026</h3>
+                <p id="agenda-selected-date-subtitle">Department Agenda Summary</p>
+              </div>
+              <div id="agenda-items-container" class="agenda-events-list">
+                <!-- Dynamically populated agendas for chosen date -->
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- SECTION: STUDENT EVENT PROPOSAL FORM -->
+        <section id="view-proposals" style="display: none;">
+          <div class="section-header">
+            <div class="section-title-wrap">
+              <h2>Request Event Permission</h2>
+              <p>Pitch your program ideas directly to the Academic Coordinator.</p>
+            </div>
+          </div>
+
+          <div class="glass-panel" style="max-width: 680px; padding: 2.5rem;">
+            <div class="alert alert-success" id="proposal-success-box" style="display: none;">
+              <i class="fa-solid fa-circle-check"></i>
+              Your proposal has been sent to the Academic Coordinator! View status below.
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div>
+                  <label class="form-label">Proposed Event Name</label>
+                  <input type="text" id="prop-title" class="form-input" style="padding-left: 1rem;" placeholder="e.g. Robowar Workshop 2026">
+                </div>
+                <div>
+                  <label class="form-label">Event Category</label>
+                  <select id="prop-category" class="form-select">
+                    <option value="Technical">Technical</option>
+                    <option value="Cultural">Cultural</option>
+                    <option value="Sports">Sports</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label class="form-label">Short Summary</label>
+                <input type="text" id="prop-summary" class="form-input" style="padding-left: 1rem;" placeholder="Explain the key details in one line.">
+              </div>
+
+              <div>
+                <label class="form-label">Full Execution Description</label>
+                <textarea id="prop-desc" class="form-textarea" rows="4" placeholder="Detail how the event will be conducted, equipment/halls needed, target year participants, and budget requirements..."></textarea>
+              </div>
+
+              <button class="btn btn-primary" onclick="app.submitStudentProposal()" style="width: fit-content; align-self: flex-end;">
+                <i class="fa-solid fa-paper-plane"></i> Submit Request
+              </button>
+            </div>
+
+            <div style="margin-top: 3rem; border-top: 1px solid var(--glass-border); padding-top: 2rem;">
+              <h3 style="font-size: 1.1rem; margin-bottom: 1rem;">My Event Requests Status</h3>
+              <div id="student-proposals-status-list" style="display: flex; flex-direction: column; gap: 1rem;">
+                <!-- Dynamically listed student requests -->
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- SECTION: STAFF INBOX (Coordinator Only) -->
+        <section id="view-inbox" style="display: none;">
+          <div class="section-header">
+            <div class="section-title-wrap">
+              <h2>Pending Event Proposals</h2>
+              <p>Review event ideas, allot dates in the calendar, and approve/reject organizer credentials.</p>
+            </div>
+          </div>
+
+          <div class="proposals-grid" id="coordinator-proposals-grid">
+            <!-- Dynamically populated card requests -->
+          </div>
+        </section>
+
+        <!-- SECTION: SUPER ADMIN PANEL (Super Admin Only) -->
+        <section id="view-superadmin" style="display: none;">
+          <div class="section-header">
+            <div class="section-title-wrap">
+              <h2>Super Admin Workspace</h2>
+              <p>Add, suspend, or configure credentials of Academic Coordinators.</p>
+            </div>
+          </div>
+
+          <div class="glass-panel" style="padding: 2rem; margin-bottom: 2rem; max-width: 600px;">
+            <h3 style="font-size: 1.1rem; margin-bottom: 1.25rem;"><i class="fa-solid fa-user-plus"></i> Create Academic Coordinator Account</h3>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; align-items: flex-end;">
+              <div>
+                <label class="form-label">Coordinator Username</label>
+                <input type="text" id="sa-coord-user" class="form-input" style="padding-left: 1rem;" placeholder="e.g. coordinator2">
+              </div>
+              <div>
+                <label class="form-label">Staff Password</label>
+                <input type="password" id="sa-coord-pass" class="form-input" style="padding-left: 1rem;" placeholder="Password">
+              </div>
+            </div>
+            <button class="btn btn-secondary btn-sm" style="margin-top: 1rem;" onclick="app.createCoordinatorAccount()">
+              Grant Access
+            </button>
+          </div>
+
+          <div class="glass-panel admin-table-container">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>Academic Username</th>
+                  <th>Granted At</th>
+                  <th>System Status</th>
+                  <th>Management Control</th>
+                </tr>
+              </thead>
+              <tbody id="sa-coordinators-list">
+                <!-- Dynamically populated coordinators list -->
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+      </main>
+    </div>
+
+  </div>
+
+  <!-- Core Javascript Application Script -->
+  <script src="app.js"></script>
+</body>
+</html>
