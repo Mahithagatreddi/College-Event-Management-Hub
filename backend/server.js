@@ -42,10 +42,8 @@ app.use((err, req, res, next) => {
 });
 
 // Setup Port
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`🚀 Express Backend Server active on port ${PORT} in ${process.env.NODE_ENV} mode.`);
-});
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log("Server running"));
 
 // ==========================================
 // 📡 MONGODB AUTO-SEEDING DATABASE ROUTINE
