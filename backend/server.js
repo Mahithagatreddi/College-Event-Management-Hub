@@ -42,9 +42,9 @@ app.use((err, req, res, next) => {
 });
 
 // Setup Port
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`🚀 Express Backend Server active on port ${PORT} in ${process.env.NODE_ENV} mode.`);
+  console.log(`✅ Server running on http://localhost:${PORT}`);
 });
 
 // ==========================================
@@ -121,7 +121,7 @@ async function seedDatabase() {
         { message: 'Academic Coordinator: Mid-Term exams commence from June 10th. Check interactive calendars.' },
         { message: 'Notice: Event registrations are now open for Rhythm \'26 Cultural Festival!' }
       ]);
-      console.log('✅ Scrolling bullet bulletins seeded.');
+      console.log('✅ Scrolling bullet notices seeded.');
 
       // Seed completed and ongoing events
       const completedEvent = await Event.create({

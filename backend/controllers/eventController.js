@@ -526,3 +526,48 @@ exports.submitEventFeedback = async (req, res) => {
     return res.status(500).json({ success: false, message: 'Server error saving feedback.' });
   }
 };
+
+// ==========================================
+// 6. COORDINATOR EVENT MANAGEMENT
+// ==========================================
+
+// @desc    Delete Event from Home Page
+// @route   DELETE /api/events/:id
+// @access  Private (Coordinator Only)
+exports.deleteEvent = async (req, res) => {
+  try {
+    const event = await Event.findById(req.params.id);
+    if (!event) {
+      return res.status(404).json({ success: false, message: 'Event not found.' });
+    }
+
+    // Get event title for notification
+    const eventTitle = event.title;
+    const eventId = event._id;
+
+    // Delete the event
+    await Event.findByIdAndDelete(req.params.id);
+
+    // Delete associated calendar entries
+    await CalendarEntry.deleteMany({ title: { $regex: eventTitle } });
+
+    // Create notification for organizer
+    await Notification.create({
+      user: event.organizer,
+      title: 'Event Removed by Coordinator ⚠️',
+      message: `Your event "${eventTitle}" has been removed from the home page by the Academic Coordinator.`,
+      type: 'alert'
+    });
+
+    // Post announcement notice about removal
+    await Notice.create({
+      message: `📢 Event Update: "${eventTitle}" has been removed from the event listings.`
+    });
+
+    return res.json({ success: true, message: `Event "${eventTitle}" successfully removed from home page.` });
+
+  } catch (error) {
+    console.error(`Delete Event Error: ${error.message}`);
+    return res.status(500).json({ success: false, message: 'Server error deleting event.' });
+  }
+};
