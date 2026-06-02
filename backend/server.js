@@ -63,7 +63,8 @@ async function seedDatabase() {
         email: 'admin@btech.edu',
         password: 'superadmin',
         role: 'superadmin',
-        name: 'System Administrator'
+        name: 'System Administrator',
+        status: 'active'
       });
       console.log('✅ Hashed Super Admin Account seeded (admin / superadmin).');
 

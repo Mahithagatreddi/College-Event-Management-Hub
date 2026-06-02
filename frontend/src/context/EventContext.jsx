@@ -353,6 +353,30 @@ export const EventProvider = ({ children }) => {
     }
   };
 
+  // Delete Event (Coordinator Only)
+  const deleteEvent = async (eventId) => {
+    try {
+      const res = await fetch(`/api/events/${eventId}`, {
+        method: 'DELETE',
+        headers: getAuthHeaders()
+      });
+      const data = await res.json();
+      if (data.success) {
+        toast.success(data.message || 'Event deleted successfully.');
+        fetchEvents();
+        fetchCalendarEntries();
+        fetchNotices();
+        return true;
+      } else {
+        toast.error(data.message || 'Failed to delete event.');
+        return false;
+      }
+    } catch (err) {
+      toast.error('Network Error: Could not delete event.');
+      return false;
+    }
+  };
+
   return (
     <EventContext.Provider value={{
       events,
@@ -368,6 +392,7 @@ export const EventProvider = ({ children }) => {
       approveProposal,
       rejectProposal,
       createEventPage,
+      deleteEvent,
       registerForEvent,
       toggleReminder,
       updateEventOrganizer,

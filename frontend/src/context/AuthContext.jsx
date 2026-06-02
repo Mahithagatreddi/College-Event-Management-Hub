@@ -33,18 +33,46 @@ export const AuthProvider = ({ children }) => {
     }
   }, [token, getAuthHeaders]);
 
-  // Sync active user session on boot
+  // Sync active user session on boot — validates against backend to prevent stale role cache
   useEffect(() => {
     const syncSession = async () => {
       const cached = localStorage.getItem('btech_user');
       if (cached && token) {
+        // Optimistically set from cache first for instant UI
         setUser(JSON.parse(cached));
+        try {
+          // Then validate against backend to get fresh role/user data
+          const res = await fetch('/api/auth/me', {
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            }
+          });
+          if (res.ok) {
+            const data = await res.json();
+            if (data.success && data.user) {
+              // Update both state and cache with fresh data from DB
+              setUser(data.user);
+              localStorage.setItem('btech_user', JSON.stringify(data.user));
+            } else {
+              // Token is invalid — clear session
+              localStorage.removeItem('btech_token');
+              localStorage.removeItem('btech_user');
+              setToken(null);
+              setUser(null);
+            }
+          }
+          // If server unreachable (network error), cached user stays — handled by catch
+        } catch (err) {
+          console.warn('Session validation skipped (server unreachable), using cache:', err.message);
+        }
         await fetchNotifications();
       }
       setLoading(false);
     };
     syncSession();
   }, [token, fetchNotifications]);
+
 
   // Dynamic parse-arithmetic helper for student registration verification
   const checkRollNumberStatus = (rollNo) => {

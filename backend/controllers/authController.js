@@ -101,16 +101,24 @@ exports.loginUser = async (req, res) => {
     if (username) {
       const cleanUser = username.trim().toLowerCase();
 
-      // Check Super Admin Credentials (Hardcoded config override)
-      if (cleanUser === 'admin' && password === 'superadmin') {
+      // Check Super Admin Credentials via real DB lookup
+      if (cleanUser === 'admin') {
+        const adminUser = await User.findOne({ role: 'superadmin' });
+        if (!adminUser) {
+          return res.status(401).json({ success: false, message: 'Super Admin account not found. Database may not be seeded yet.' });
+        }
+        const isAdminMatch = await adminUser.matchPassword(password);
+        if (!isAdminMatch) {
+          return res.status(401).json({ success: false, message: 'Incorrect Super Admin password.' });
+        }
         return res.json({
           success: true,
-          token: generateToken('superadmin-id-mock'),
+          token: generateToken(adminUser._id),
           user: {
-            id: 'superadmin-id-mock',
-            name: 'System Administrator',
-            username: 'admin',
-            role: 'superadmin'
+            id: adminUser._id,
+            name: adminUser.name,
+            username: adminUser.username || 'admin',
+            role: adminUser.role
           }
         });
       }
@@ -201,3 +209,39 @@ exports.loginUser = async (req, res) => {
     return res.status(500).json({ success: false, message: 'Server error during authentication.' });
   }
 };
+
+// @desc    Get current logged-in user (fresh from DB)
+// @route   GET /api/auth/me
+// @access  Private (requires valid JWT)
+exports.getMe = async (req, res) => {
+  try {
+    // req.user is already populated by the protect middleware
+    const user = req.user;
+
+    // Build a unified user response matching the login response shape
+    const userPayload = {
+      id: user._id,
+      name: user.name,
+      role: user.role,
+      email: user.email || undefined,
+      username: user.username || undefined,
+      rollNo: user.rollNo || undefined,
+      department: user.department || undefined,
+      section: user.section || undefined,
+      pursuingYear: user.pursuingYear || undefined,
+      gradYear: user.gradYear || undefined,
+      badges: user.badges || [],
+      status: user.status || undefined
+    };
+
+    // Remove undefined keys to keep payload clean
+    Object.keys(userPayload).forEach(key => userPayload[key] === undefined && delete userPayload[key]);
+
+    return res.json({ success: true, user: userPayload });
+
+  } catch (error) {
+    console.error(`GetMe Controller Error: ${error.message}`);
+    return res.status(500).json({ success: false, message: 'Server error fetching user session.' });
+  }
+};
+

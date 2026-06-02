@@ -7,7 +7,7 @@ import WinnersMarquee from '../components/WinnersMarquee';
 import StatsSection from '../components/StatsSection';
 import CalendarGrid from '../components/CalendarGrid';
 import NotificationCenter from '../components/NotificationCenter';
-import { FaGraduationCap, FaHome, FaCalendarAlt, FaPaperPlane, FaInbox, FaUsersCog, FaSignOutAlt, FaSearch, FaPlusCircle } from 'react-icons/fa';
+import { FaGraduationCap, FaHome, FaCalendarAlt, FaPaperPlane, FaInbox, FaUsersCog, FaSignOutAlt, FaSearch, FaPlusCircle, FaTrashAlt } from 'react-icons/fa';
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
 
@@ -21,7 +21,8 @@ export default function Dashboard() {
     rejectProposal, 
     createEventPage,
     postScrollingNotice, 
-    fetchProposals 
+    fetchProposals,
+    deleteEvent
   } = useEvents();
 
   const navigate = useNavigate();
@@ -208,6 +209,13 @@ export default function Dashboard() {
     } catch (err) {
       toast.error('Server error.');
     }
+  };
+
+  // Coordinator: Delete an event with confirmation
+  const handleDeleteEvent = async (e, eventId, eventTitle) => {
+    e.stopPropagation(); // Prevent navigating to the event page
+    if (!window.confirm(`Are you sure you want to permanently delete "${eventTitle}"? This cannot be undone.`)) return;
+    await deleteEvent(eventId);
   };
 
   // Filters event cards
@@ -411,6 +419,17 @@ export default function Dashboard() {
                             <span className={`absolute top-4 right-4 text-[9px] uppercase font-bold tracking-wider px-2 py-1 rounded border ${statusBg}`}>
                               {evt.status}
                             </span>
+
+                            {/* Coordinator Delete Button — top-left corner of poster */}
+                            {user?.role === 'coordinator' && (
+                              <button
+                                onClick={(e) => handleDeleteEvent(e, evt._id, evt.title)}
+                                title="Delete Event"
+                                className="absolute top-3 left-3 w-7 h-7 flex items-center justify-center rounded-lg bg-black/60 border border-neon-rose/30 text-neon-rose hover:bg-neon-rose hover:text-white hover:border-neon-rose transition-all duration-200 opacity-0 group-hover:opacity-100 z-10"
+                              >
+                                <FaTrashAlt className="text-[10px]" />
+                              </button>
+                            )}
                           </div>
 
                           <div className="p-5 flex flex-col gap-2">
