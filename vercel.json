@@ -6,7 +6,7 @@
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "https://btech-event-hub-backend.onrender.com/api/:path*"
+      "destination": "https://college-event-management-hub.onrender.com/api/:path*"
     },
     {
       "source": "/(.*)",
