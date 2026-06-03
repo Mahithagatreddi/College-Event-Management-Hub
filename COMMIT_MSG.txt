@@ -1,0 +1,13 @@
+feat: Add event removal feature for academic coordinators
+
+Added DELETE /api/events/:id endpoint that enables coordinators to remove 
+events from the home page. This includes:
+
+- Event deletion from database
+- Associated calendar entries cleanup  
+- Notification to event organizer
+- Public removal announcement
+
+Also improved server.js logging to display the port number for clarity.
+
+Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>

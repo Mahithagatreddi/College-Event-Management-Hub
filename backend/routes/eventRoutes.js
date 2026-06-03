@@ -11,7 +11,8 @@ const {
   toggleEventRegistration,
   toggleEventReminder,
   updateEventOrganizerConsole,
-  submitEventFeedback
+  submitEventFeedback,
+  deleteEvent
 } = require('../controllers/eventController');
 const { protect, authorize } = require('../middleware/authMiddleware');
 
@@ -32,5 +33,6 @@ router.post('/:id/register', protect, authorize('student'), toggleEventRegistrat
 router.post('/:id/notify', protect, authorize('student'), toggleEventReminder);
 router.patch('/:id/organizer', protect, authorize('student'), updateEventOrganizerConsole);
 router.post('/:id/feedback', protect, authorize('student'), submitEventFeedback);
+router.delete('/:id', protect, authorize('coordinator'), deleteEvent);
 
 module.exports = router;

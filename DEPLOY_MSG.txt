@@ -1,0 +1,10 @@
+docs: Add Render.com deployment configuration
+
+Added render.yaml for automated deployment to Render.com platform with proper
+Node.js environment configuration and environment variable setup.
+
+Also added comprehensive DEPLOYMENT_GUIDE.md with step-by-step instructions
+for deploying the backend API to Render.com including MongoDB setup,
+environment variables, and troubleshooting guide.
+
+Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>

@@ -43,7 +43,9 @@ app.use((err, req, res, next) => {
 
 // Setup Port
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log("Server running"));
+app.listen(PORT, () => {
+  console.log(`✅ Server running on http://localhost:${PORT}`);
+});
 
 // ==========================================
 // 📡 MONGODB AUTO-SEEDING DATABASE ROUTINE
@@ -119,7 +121,7 @@ async function seedDatabase() {
         { message: 'Academic Coordinator: Mid-Term exams commence from June 10th. Check interactive calendars.' },
         { message: 'Notice: Event registrations are now open for Rhythm \'26 Cultural Festival!' }
       ]);
-      console.log('✅ Scrolling bullet bulletins seeded.');
+      console.log('✅ Scrolling bullet notices seeded.');
 
       // Seed completed and ongoing events
       const completedEvent = await Event.create({
